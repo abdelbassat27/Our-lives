@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- منع محركات البحث من أرشفة الموقع أو تتبع الروابط -->
+  <meta name="robots" content="noindex, nofollow" />
+
+  <title>مساحتنا</title>
+
+  <!-- خطوط عربية: خط أدبي رقيق للعناوين (Amiri) + خط واضح للنصوص (Tajawal) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Tajawal:wght@300;400;500;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Tailwind CSS عبر CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // تخصيص نظام الألوان والخطوط الخاص بالمشروع (Design Tokens)
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ivory: "#FFFCF8",       // الخلفية الأساسية
+            blush: "#F7E4DD",       // خلفية القسم الجانبي / التدرجات
+            "blush-deep": "#F0CBBE",// توقف تدرج ثانٍ، أعمق قليلاً
+            rose: "#C97B90",        // اللون الأساسي (لمسات، حدود)
+            "rose-deep": "#8E4A5E", // نبيذي وردي غامق — للعناوين والأزرار
+            gold: "#B8935A",        // ذهبي عتيق للخطوط والزخارف
+            "gold-light": "#E7C88F",// ذهبي فاتح للمعان والتوهج
+            ink: "#3E2E2C",         // لون النص الأساسي
+            "ink-soft": "#8B7573",  // لون النص الثانوي
+          },
+          fontFamily: {
+            display: ["'Amiri'", "serif"],     // عناوين أدبية رقيقة
+            body: ["'Tajawal'", "sans-serif"],  // لكل النصوص والحقول
+          },
+        },
+      },
+    };
+  </script>
+
+  <link rel="stylesheet" href="custom.css" />
+</head>
+
+<body class="bg-ivory font-body text-ink antialiased min-h-screen">
+
+  <!-- ======================= شاشة تسجيل الدخول ======================= -->
+  <!-- هذه هي الشاشة الوحيدة الظاهرة قبل نجاح تسجيل الدخول -->
+  <main id="login-screen" class="min-h-screen w-full grid lg:grid-cols-2">
+
+    <!-- القسم الزخرفي (يظهر في الشاشات الكبيرة، ويتحول لشريط علوي صغير في الجوال) -->
+    <section
+      class="relative order-1 lg:order-2 deco-panel overflow-hidden flex items-center justify-center py-14 lg:py-0"
+      aria-hidden="true"
+    >
+      <!-- توهجات تدرّجية دافئة في الخلفية -->
+      <div class="glow-blob glow-blob-1"></div>
+      <div class="glow-blob glow-blob-2"></div>
+
+      <!-- بتلات متطايرة (عنصر التوقيع البصري) -->
+      <div class="petals">
+        <span class="petal petal-1"></span>
+        <span class="petal petal-2"></span>
+        <span class="petal petal-3"></span>
+        <span class="petal petal-4"></span>
+        <span class="petal petal-5"></span>
+      </div>
+
+      <!-- رسم خطي لخاتمين متشابكين، يُرسم تدريجياً عند تحميل الصفحة -->
+      <div class="relative z-10 flex flex-col items-center">
+        <svg
+          viewBox="0 0 240 160"
+          class="rings-svg w-40 sm:w-52 lg:w-60"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <circle cx="95" cy="80" r="46" fill="none" stroke="#B8935A" stroke-width="2" class="ring ring-a" />
+          <circle cx="145" cy="80" r="46" fill="none" stroke="#8E4A5E" stroke-width="2" class="ring ring-b" />
+        </svg>
+        <p class="deco-caption">لكل يوم قصة، ولكل قصة مكانها هنا</p>
+      </div>
+    </section>
+
+    <!-- بطاقة تسجيل الدخول -->
+    <section class="order-2 lg:order-1 flex items-center justify-center px-6 py-12 sm:py-16">
+      <div class="w-full max-w-sm">
+
+        <header class="text-center mb-8">
+          <p class="font-display italic text-5xl sm:text-6xl text-rose-deep leading-tight">مساحتنا</p>
+          <div class="ornament-divider" aria-hidden="true"><span></span><i></i><span></span></div>
+          <p class="text-sm text-ink-soft">هذه الزاوية لنا وحدنا فقط</p>
+        </header>
+
+        <form id="login-form" class="space-y-5" novalidate>
+
+          <!-- البريد الإلكتروني -->
+          <div>
+            <label for="email" class="block text-sm text-ink-soft mb-1.5">البريد الإلكتروني</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              autocomplete="username"
+              required
+              class="auth-input"
+              placeholder="example@email.com"
+            />
+          </div>
+
+          <!-- كلمة المرور -->
+          <div>
+            <label for="password" class="block text-sm text-ink-soft mb-1.5">كلمة المرور</label>
+            <div class="relative">
+              <input
+                type="password"
+                id="password"
+                name="password"
+                autocomplete="current-password"
+                required
+                class="auth-input"
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                id="toggle-password"
+                class="absolute left-3 top-1/2 -translate-y-1/2 text-ink-soft text-xs hover:text-rose-deep transition"
+                aria-label="إظهار كلمة المرور"
+              >
+                إظهار
+              </button>
+            </div>
+          </div>
+
+          <!-- رسالة الخطأ (مخفية افتراضياً) -->
+          <p
+            id="login-error"
+            class="hidden text-sm text-rose-deep bg-rose/10 border border-rose/30 rounded-xl px-4 py-2.5 text-center"
+            role="alert"
+          ></p>
+
+          <!-- زر الدخول -->
+          <button
+            type="submit"
+            id="login-submit"
+            class="auth-submit"
+          >
+            <span id="login-submit-text">دخول</span>
+            <!-- مؤشر تحميل بسيط، يظهر أثناء التحقق -->
+            <svg id="login-spinner" class="hidden animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            </svg>
+          </button>
+        </form>
+
+        <p class="text-center text-xs text-ink-soft/70 mt-8">
+          مساحة خاصة — الدخول مقتصر على حساب واحد محدد مسبقاً
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <!-- ======================= مساحة التطبيق (بعد الدخول) ======================= -->
+  <!-- تبقى مخفية بالكامل عبر hidden حتى تتحقق حالة الدخول من Firebase -->
+  <main id="app-shell" class="hidden min-h-screen app-bg">
+    <header class="app-header">
+      <p class="font-display italic text-3xl text-rose-deep">مساحتنا</p>
+      <button
+        id="logout-btn"
+        class="text-sm text-ink-soft hover:text-rose-deep transition"
+      >
+        تسجيل الخروج
+      </button>
+    </header>
+
+    <!-- شريط تنقّل بين أقسام التطبيق -->
+    <nav class="tab-nav" aria-label="أقسام التطبيق">
+      <button type="button" data-tab="counter" class="tab-btn is-active">عداد الأيام</button>
+      <button type="button" data-tab="timeline" class="tab-btn">الخط الزمني</button>
+      <button type="button" data-tab="gallery" class="tab-btn">معرض الصور</button>
+      <button type="button" data-tab="letters" class="tab-btn">الرسائل</button>
+    </nav>
+
+    <!-- ======================= قسم: عداد الأيام (Love Counter) ======================= -->
+    <section data-panel="counter" class="px-6 py-10 sm:py-14">
+      <div class="max-w-2xl mx-auto text-center">
+
+        <!-- قلب نابض صغير كعنصر زخرفي أعلى العداد -->
+        <div class="pulse-heart mx-auto mb-4" aria-hidden="true">🤍</div>
+
+        <h2 class="font-display italic text-3xl sm:text-4xl text-rose-deep">منذ أن أصبحنا "نحن"</h2>
+        <div class="ornament-divider" aria-hidden="true"><span></span><i></i><span></span></div>
+        <p id="counter-since" class="text-sm text-ink-soft"></p>
+
+        <!-- بطاقات الوحدات الزمنية -->
+        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2.5 sm:gap-3 mt-8" role="group" aria-label="الوقت المنقضي منذ بداية العلاقة">
+          <div class="counter-card">
+            <span id="count-years" class="counter-number">0</span>
+            <span class="counter-label">سنة</span>
+          </div>
+          <div class="counter-card">
+            <span id="count-months" class="counter-number">0</span>
+            <span class="counter-label">شهر</span>
+          </div>
+          <div class="counter-card">
+            <span id="count-days" class="counter-number">0</span>
+            <span class="counter-label">يوم</span>
+          </div>
+          <div class="counter-card">
+            <span id="count-hours" class="counter-number">00</span>
+            <span class="counter-label">ساعة</span>
+          </div>
+          <div class="counter-card">
+            <span id="count-minutes" class="counter-number">00</span>
+            <span class="counter-label">دقيقة</span>
+          </div>
+          <div class="counter-card">
+            <span id="count-seconds" class="counter-number">00</span>
+            <span class="counter-label">ثانية</span>
+          </div>
+        </div>
+
+        <p id="counter-total-days" class="text-xs text-ink-soft/70 mt-6"></p>
+      </div>
+    </section>
+
+    <!-- ======================= قسم: الخط الزمني (Timeline) ======================= -->
+    <section data-panel="timeline" class="hidden px-6 py-10 sm:py-14">
+      <div class="max-w-2xl mx-auto">
+
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="font-display italic text-2xl sm:text-3xl text-rose-deep">خط ذكرياتنا</h2>
+          <button type="button" id="timeline-add-toggle" class="add-btn">+ إضافة ذكرى</button>
+        </div>
+        <div class="ornament-divider ornament-divider-start" aria-hidden="true"><span></span><i></i></div>
+        <div class="h-4"></div>
+
+        <!-- نموذج إضافة ذكرى جديدة (مخفي افتراضياً) -->
+        <form id="timeline-form" class="entry-form hidden">
+          <div>
+            <label for="timeline-date" class="entry-label">التاريخ</label>
+            <input type="date" id="timeline-date" required class="entry-input" />
+          </div>
+          <div>
+            <label for="timeline-desc" class="entry-label">الوصف</label>
+            <textarea id="timeline-desc" rows="3" required class="entry-input" placeholder="ماذا حدث في هذا اليوم؟"></textarea>
+          </div>
+          <div>
+            <label for="timeline-image" class="entry-label">صورة (اختياري)</label>
+            <input type="file" id="timeline-image" accept="image/*" class="entry-input-file" />
+          </div>
+          <div class="flex items-center gap-2 pt-1">
+            <button type="submit" class="save-btn">
+              <span id="timeline-save-text">حفظ الذكرى</span>
+            </button>
+            <button type="button" id="timeline-cancel" class="cancel-btn">إلغاء</button>
+          </div>
+        </form>
+
+        <!-- قائمة الأحداث -->
+        <ol id="timeline-list" class="timeline-list mt-8"></ol>
+
+        <!-- حالة فارغة -->
+        <p id="timeline-empty" class="empty-state hidden">لا توجد ذكريات بعد — أضيفا أول لحظة تستحق التوثيق 🤍</p>
+      </div>
+    </section>
+
+    <!-- ======================= قسم: معرض الصور (Gallery) ======================= -->
+    <section data-panel="gallery" class="hidden px-6 py-10 sm:py-14">
+      <div class="max-w-4xl mx-auto">
+
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="font-display italic text-2xl sm:text-3xl text-rose-deep">معرض الصور</h2>
+          <button type="button" id="gallery-add-toggle" class="add-btn">+ إضافة صورة</button>
+        </div>
+        <div class="ornament-divider ornament-divider-start" aria-hidden="true"><span></span><i></i></div>
+        <div class="h-4"></div>
+
+        <!-- نموذج رفع صورة جديدة (مخفي افتراضياً) -->
+        <form id="gallery-form" class="entry-form hidden">
+          <div>
+            <label for="gallery-image" class="entry-label">اختر صورة</label>
+            <input type="file" id="gallery-image" accept="image/*" required class="entry-input-file" />
+          </div>
+          <div>
+            <label for="gallery-caption" class="entry-label">تعليق (اختياري)</label>
+            <input type="text" id="gallery-caption" class="entry-input" placeholder="لحظة من ..." />
+          </div>
+          <div class="flex items-center gap-2 pt-1">
+            <button type="submit" class="save-btn">
+              <span id="gallery-save-text">رفع الصورة</span>
+            </button>
+            <button type="button" id="gallery-cancel" class="cancel-btn">إلغاء</button>
+          </div>
+        </form>
+
+        <!-- شبكة الصور -->
+        <div id="gallery-grid" class="gallery-grid mt-8"></div>
+
+        <!-- حالة فارغة -->
+        <p id="gallery-empty" class="empty-state hidden">لا صور بعد — أضيفا أول صورة لمعرضكما 🤍</p>
+      </div>
+    </section>
+
+    <!-- ======================= قسم: الرسائل (Digital Letters) ======================= -->
+    <section data-panel="letters" class="hidden px-6 py-10 sm:py-14">
+      <div class="max-w-2xl mx-auto">
+
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="font-display italic text-2xl sm:text-3xl text-rose-deep">رسائلنا</h2>
+          <button type="button" id="letters-add-toggle" class="add-btn">+ كتابة رسالة</button>
+        </div>
+        <div class="ornament-divider ornament-divider-start" aria-hidden="true"><span></span><i></i></div>
+        <div class="h-4"></div>
+
+        <!-- نموذج كتابة رسالة جديدة (مخفي افتراضياً) -->
+        <form id="letters-form" class="entry-form hidden">
+          <div>
+            <label for="letter-title" class="entry-label">العنوان</label>
+            <input type="text" id="letter-title" required class="entry-input" placeholder="مثال: في يوم عادي جداً" />
+          </div>
+          <div>
+            <label for="letter-content" class="entry-label">الرسالة</label>
+            <textarea id="letter-content" rows="5" required class="entry-input" placeholder="اكتب/ي ما يجول في خاطرك..."></textarea>
+          </div>
+          <div class="flex items-center gap-2 pt-1">
+            <button type="submit" class="save-btn">
+              <span id="letters-save-text">حفظ الرسالة</span>
+            </button>
+            <button type="button" id="letters-cancel" class="cancel-btn">إلغاء</button>
+          </div>
+        </form>
+
+        <!-- قائمة الرسائل -->
+        <div id="letters-list" class="letters-list mt-8"></div>
+
+        <!-- حالة فارغة -->
+        <p id="letters-empty" class="empty-state hidden">لا رسائل بعد — اكتبا أول كلمة لبعضكما 🤍</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- ======================= صندوق تكبير الصورة (Lightbox) ======================= -->
+  <div id="lightbox" class="lightbox hidden" role="dialog" aria-modal="true" aria-label="تكبير الصورة">
+    <button type="button" id="lightbox-close" class="lightbox-close" aria-label="إغلاق">✕</button>
+    <img id="lightbox-img" src="" alt="" class="lightbox-img" />
+  </div>
+
+  <!-- شاشة تحميل أولية بينما يتحقق Firebase من حالة الجلسة -->
+  <div
+    id="boot-loader"
+    class="fixed inset-0 bg-ivory flex items-center justify-center z-50"
+  >
+    <p class="font-display text-3xl text-rose-deep animate-pulse">مساحتنا</p>
+  </div>
+
+  <!-- ======================= Firebase: الإعداد + منطق تسجيل الدخول ======================= -->
+  <script type="module">
+    // ------------------------------------------------------------
+    // 1) استيراد أدوات Firebase (نسخة Modular v10 عبر CDN)
+    // ------------------------------------------------------------
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import {
+      getAuth,
+      signInWithEmailAndPassword,
+      signOut,
+      onAuthStateChanged,
+    } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      deleteDoc,
+      doc,
+      query,
+      orderBy,
+      onSnapshot,
+      serverTimestamp,
+    } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+    import {
+      getStorage,
+      ref,
+      uploadBytes,
+      getDownloadURL,
+      deleteObject,
+    } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
+
+    // ------------------------------------------------------------
+    // 2) إعدادات مشروع Firebase الخاص بك
+    // ------------------------------------------------------------
+    // ⚠️ ملاحظة أمنية: هذه القيم (apiKey إلخ) ليست سرّية بطبيعتها،
+    // ومن الطبيعي ظهورها في كود المتصفح. الحماية الفعلية تأتي من:
+    //  - تفعيل Email/Password فقط في Authentication (بدون Sign-up في الواجهة)
+    //  - قواعد أمان Firestore/Storage التي تسمح فقط لمستخدم مسجّل دخوله
+    const firebaseConfig = {
+      apiKey: "AIzaSyDWcU0G6LQSnSjhoXseoQzuyl_SWwKI5hI",
+      authDomain: "our-lives-a2007a.firebaseapp.com",
+      projectId: "our-lives-a2007a",
+      storageBucket: "our-lives-a2007a.firebasestorage.app",
+      messagingSenderId: "162763000905",
+      appId: "1:162763000905:web:9ab7c9a2b430cf25450398",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    // ------------------------------------------------------------
+    // 3) عناصر الصفحة
+    // ------------------------------------------------------------
+    const loginScreen = document.getElementById("login-screen");
+    const appShell = document.getElementById("app-shell");
+    const bootLoader = document.getElementById("boot-loader");
+
+    const loginForm = document.getElementById("login-form");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const loginError = document.getElementById("login-error");
+    const submitBtn = document.getElementById("login-submit");
+    const submitText = document.getElementById("login-submit-text");
+    const spinner = document.getElementById("login-spinner");
+    const togglePasswordBtn = document.getElementById("toggle-password");
+    const logoutBtn = document.getElementById("logout-btn");
+
+    // عناصر عداد الأيام (Love Counter)
+    const tabButtons = document.querySelectorAll(".tab-btn");
+    const panels = document.querySelectorAll("[data-panel]");
+    const counterSince = document.getElementById("counter-since");
+    const counterTotalDays = document.getElementById("counter-total-days");
+    const countYears = document.getElementById("count-years");
+    const countMonths = document.getElementById("count-months");
+    const countDays = document.getElementById("count-days");
+    const countHours = document.getElementById("count-hours");
+    const countMinutes = document.getElementById("count-minutes");
+    const countSeconds = document.getElementById("count-seconds");
+
+    // عناصر الخط الزمني (Timeline)
+    const timelineAddToggle = document.getElementById("timeline-add-toggle");
+    const timelineForm = document.getElementById("timeline-form");
+    const timelineCancel = document.getElementById("timeline-cancel");
+    const timelineDateInput = document.getElementById("timeline-date");
+    const timelineDescInput = document.getElementById("timeline-desc");
+    const timelineImageInput = document.getElementById("timeline-image");
+    const timelineSaveText = document.getElementById("timeline-save-text");
+    const timelineList = document.getElementById("timeline-list");
+    const timelineEmpty = document.getElementById("timeline-empty");
+
+    // عناصر معرض الصور (Gallery)
+    const galleryAddToggle = document.getElementById("gallery-add-toggle");
+    const galleryForm = document.getElementById("gallery-form");
+    const galleryCancel = document.getElementById("gallery-cancel");
+    const galleryImageInput = document.getElementById("gallery-image");
+    const galleryCaptionInput = document.getElementById("gallery-caption");
+    const gallerySaveText = document.getElementById("gallery-save-text");
+    const galleryGrid = document.getElementById("gallery-grid");
+    const galleryEmpty = document.getElementById("gallery-empty");
+
+    // عناصر الرسائل (Letters)
+    const lettersAddToggle = document.getElementById("letters-add-toggle");
+    const lettersForm = document.getElementById("letters-form");
+    const lettersCancel = document.getElementById("letters-cancel");
+    const letterTitleInput = document.getElementById("letter-title");
+    const letterContentInput = document.getElementById("letter-content");
+    const lettersSaveText = document.getElementById("letters-save-text");
+    const lettersList = document.getElementById("letters-list");
+    const lettersEmpty = document.getElementById("letters-empty");
+
+    // صندوق تكبير الصورة (Lightbox)
+    const lightbox = document.getElementById("lightbox");
+    const lightboxImg = document.getElementById("lightbox-img");
+    const lightboxClose = document.getElementById("lightbox-close");
+
+    // ------------------------------------------------------------
+    // 4) المسار المحمي (Protected Route)
+    // ------------------------------------------------------------
+    // نراقب حالة تسجيل الدخول باستمرار. لا تظهر شاشة الدخول ولا
+    // محتوى التطبيق قبل أن يردّ Firebase بحالة المستخدم الحقيقية.
+    onAuthStateChanged(auth, (user) => {
+      bootLoader.classList.add("hidden");
+
+      if (user) {
+        loginScreen.classList.add("hidden");
+        appShell.classList.remove("hidden");
+        startLoveCounter();
+        initTimeline();
+        initGallery();
+        initLetters();
+      } else {
+        appShell.classList.add("hidden");
+        loginScreen.classList.remove("hidden");
+      }
+    });
+
+    // ------------------------------------------------------------
+    // 5) إرسال نموذج تسجيل الدخول
+    // ------------------------------------------------------------
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      hideError();
+      setLoading(true);
+
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        // onAuthStateChanged أعلاه سيتكفّل تلقائياً بإظهار التطبيق
+      } catch (err) {
+        showError(mapFirebaseError(err.code));
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    // ------------------------------------------------------------
+    // 6) تسجيل الخروج
+    // ------------------------------------------------------------
+    logoutBtn?.addEventListener("click", async () => {
+      await signOut(auth);
+    });
+
+    // ------------------------------------------------------------
+    // 7) إظهار / إخفاء كلمة المرور
+    // ------------------------------------------------------------
+    togglePasswordBtn.addEventListener("click", () => {
+      const isHidden = passwordInput.type === "password";
+      passwordInput.type = isHidden ? "text" : "password";
+      togglePasswordBtn.textContent = isHidden ? "إخفاء" : "إظهار";
+      togglePasswordBtn.setAttribute(
+        "aria-label",
+        isHidden ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"
+      );
+    });
+
+    // ------------------------------------------------------------
+    // 8) دوال مساعدة
+    // ------------------------------------------------------------
+    function setLoading(isLoading) {
+      submitBtn.disabled = isLoading;
+      submitBtn.classList.toggle("opacity-70", isLoading);
+      submitBtn.classList.toggle("cursor-not-allowed", isLoading);
+      spinner.classList.toggle("hidden", !isLoading);
+      submitText.textContent = isLoading ? "جارٍ التحقق..." : "دخول";
+    }
+
+    function showError(message) {
+      loginError.textContent = message;
+      loginError.classList.remove("hidden");
+    }
+
+    function hideError() {
+      loginError.classList.add("hidden");
+      loginError.textContent = "";
+    }
+
+    // ترجمة أكواد أخطاء Firebase إلى رسائل عربية واضحة
+    function mapFirebaseError(code) {
+      switch (code) {
+        case "auth/invalid-email":
+          return "صيغة البريد الإلكتروني غير صحيحة.";
+        case "auth/user-not-found":
+        case "auth/wrong-password":
+        case "auth/invalid-credential":
+          return "البريد الإلكتروني أو كلمة المرور غير صحيحة.";
+        case "auth/too-many-requests":
+          return "محاولات كثيرة متتالية. يرجى الانتظار قليلاً ثم إعادة المحاولة.";
+        case "auth/network-request-failed":
+          return "تعذّر الاتصال بالخادم. تحقق من اتصالك بالإنترنت.";
+        default:
+          return "حدث خطأ غير متوقع. حاول مرة أخرى.";
+      }
+    }
+
+    // ------------------------------------------------------------
+    // 9) التنقّل بين الأقسام (Tabs)
+    // ------------------------------------------------------------
+    tabButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const target = btn.dataset.tab;
+
+        tabButtons.forEach((b) => b.classList.toggle("is-active", b === btn));
+        panels.forEach((panel) =>
+          panel.classList.toggle("hidden", panel.dataset.panel !== target)
+        );
+      });
+    });
+
+    // ------------------------------------------------------------
+    // 10) عداد الأيام (Love Counter)
+    // ------------------------------------------------------------
+    // ⚠️ عدّل التاريخ التالي إلى تاريخ بداية علاقتكما (سنة-شهر-يوم، وبالتوقيت المحلي)
+    const RELATIONSHIP_START_DATE = new Date("2023-01-01T00:00:00");
+
+    let loveCounterInterval = null;
+
+    function startLoveCounter() {
+      if (loveCounterInterval) return; // لا تُشغّل أكثر من عداد واحد في نفس الوقت
+
+      // نص "منذ" ثابت (تاريخ البداية بصيغة عربية مقروءة)
+      counterSince.textContent = `منذ ${formatArabicDate(RELATIONSHIP_START_DATE)}`;
+
+      renderLoveCounter(); // عرض فوري دون انتظار أول ثانية
+      loveCounterInterval = setInterval(renderLoveCounter, 1000);
+    }
+
+    function renderLoveCounter() {
+      const elapsed = calculateElapsed(RELATIONSHIP_START_DATE, new Date());
+
+      countYears.textContent = elapsed.years;
+      countMonths.textContent = elapsed.months;
+      countDays.textContent = elapsed.days;
+      countHours.textContent = String(elapsed.hours).padStart(2, "0");
+      countMinutes.textContent = String(elapsed.minutes).padStart(2, "0");
+      countSeconds.textContent = String(elapsed.seconds).padStart(2, "0");
+
+      const totalDays = Math.floor(
+        (new Date() - RELATIONSHIP_START_DATE) / (1000 * 60 * 60 * 24)
+      );
+      counterTotalDays.textContent = `${totalDays.toLocaleString("ar")} يوماً معاً بالمجموع`;
+    }
+
+    /**
+     * حساب الفرق بين تاريخين بدقّة تقويمية (سنوات كاملة، أشهر كاملة، أيام،
+     * ساعات، دقائق، ثوانٍ) بدل تقسيم الفرق الإجمالي بالمللي ثانية فقط،
+     * لأن الأشهر والسنوات متفاوتة الطول تقويمياً.
+     */
+    function calculateElapsed(start, now) {
+      let years = now.getFullYear() - start.getFullYear();
+      let months = now.getMonth() - start.getMonth();
+      let days = now.getDate() - start.getDate();
+      let hours = now.getHours() - start.getHours();
+      let minutes = now.getMinutes() - start.getMinutes();
+      let seconds = now.getSeconds() - start.getSeconds();
+
+      if (seconds < 0) {
+        seconds += 60;
+        minutes--;
+      }
+      if (minutes < 0) {
+        minutes += 60;
+        hours--;
+      }
+      if (hours < 0) {
+        hours += 24;
+        days--;
+      }
+      if (days < 0) {
+        // عدد أيام الشهر السابق لشهر "الآن"، لإضافته للفرق السالب في الأيام
+        const prevMonthLastDay = new Date(now.getFullYear(), now.getMonth(), 0).getDate();
+        days += prevMonthLastDay;
+        months--;
+      }
+      if (months < 0) {
+        months += 12;
+        years--;
+      }
+
+      return { years, months, days, hours, minutes, seconds };
+    }
+
+    /** تنسيق تاريخ بصيغة عربية مقروءة، مثال: 1 يناير 2023 */
+    function formatArabicDate(date) {
+      return date.toLocaleDateString("ar-EG", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    }
+
+    // ------------------------------------------------------------
+    // أدوات مشتركة: فتح/إغلاق نماذج الإضافة، ورفع الصور
+    // ------------------------------------------------------------
+
+    /** تبديل ظهور نموذج داخل قسم معيّن (زر "+ إضافة" يفتح النموذج ويتحول لـ "إخفاء") */
+    function wireFormToggle(toggleBtn, form, cancelBtn, openLabel, closeLabel) {
+      toggleBtn.addEventListener("click", () => {
+        const willShow = form.classList.contains("hidden");
+        form.classList.toggle("hidden", !willShow);
+        toggleBtn.textContent = willShow ? closeLabel : openLabel;
+      });
+      cancelBtn.addEventListener("click", () => {
+        form.reset();
+        form.classList.add("hidden");
+        toggleBtn.textContent = openLabel;
+      });
+    }
+
+    /**
+     * رفع ملف صورة إلى Firebase Storage داخل مجلد معيّن، وإرجاع رابط التحميل.
+     * يُستخدم لكل من الخط الزمني ومعرض الصور.
+     */
+    async function uploadImage(file, folder) {
+      const safeName = `${Date.now()}-${file.name.replace(/[^\w.\-]/g, "_")}`;
+      const imageRef = ref(storage, `${folder}/${safeName}`);
+      await uploadBytes(imageRef, file);
+      return { url: await getDownloadURL(imageRef), path: imageRef.fullPath };
+    }
+
+    /** فتح صندوق تكبير الصورة */
+    function openLightbox(url, alt) {
+      lightboxImg.src = url;
+      lightboxImg.alt = alt || "";
+      lightbox.classList.remove("hidden");
+    }
+    function closeLightbox() {
+      lightbox.classList.add("hidden");
+      lightboxImg.src = "";
+    }
+    lightboxClose.addEventListener("click", closeLightbox);
+    lightbox.addEventListener("click", (e) => {
+      if (e.target === lightbox) closeLightbox(); // إغلاق عند الضغط خارج الصورة
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeLightbox();
+    });
+
+    // ------------------------------------------------------------
+    // 11) الخط الزمني (Timeline)
+    // ------------------------------------------------------------
+    let timelineInitialized = false;
+
+    function initTimeline() {
+      wireFormToggle(timelineAddToggle, timelineForm, timelineCancel, "+ إضافة ذكرى", "إخفاء النموذج");
+
+      if (timelineInitialized) return;
+      timelineInitialized = true;
+
+      timelineForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const date = timelineDateInput.value;
+        const description = timelineDescInput.value.trim();
+        const file = timelineImageInput.files[0];
+
+        if (!date || !description) return;
+
+        timelineSaveText.textContent = "جارٍ الحفظ...";
+
+        try {
+          let imageUrl = null;
+          let imagePath = null;
+          if (file) {
+            const uploaded = await uploadImage(file, "timeline");
+            imageUrl = uploaded.url;
+            imagePath = uploaded.path;
+          }
+
+          await addDoc(collection(db, "timeline"), {
+            date,
+            description,
+            imageUrl,
+            imagePath,
+            createdAt: serverTimestamp(),
+          });
+
+          timelineForm.reset();
+          timelineForm.classList.add("hidden");
+          timelineAddToggle.textContent = "+ إضافة ذكرى";
+        } catch (err) {
+          alert("تعذّر حفظ الذكرى. حاول مرة أخرى.");
+          console.error(err);
+        } finally {
+          timelineSaveText.textContent = "حفظ الذكرى";
+        }
+      });
+
+      // استماع مباشر: أي إضافة أو حذف تنعكس فوراً لدى الطرفين
+      const timelineQuery = query(collection(db, "timeline"), orderBy("date", "desc"));
+      onSnapshot(timelineQuery, (snapshot) => {
+        timelineList.innerHTML = "";
+
+        if (snapshot.empty) {
+          timelineEmpty.classList.remove("hidden");
+          return;
+        }
+        timelineEmpty.classList.add("hidden");
+
+        snapshot.forEach((docSnap) => {
+          const item = docSnap.data();
+          timelineList.appendChild(renderTimelineItem(docSnap.id, item));
+        });
+      });
+    }
+
+    function renderTimelineItem(id, item) {
+      const li = document.createElement("li");
+      li.className = "timeline-item";
+
+      li.innerHTML = `
+        <div class="timeline-dot" aria-hidden="true"></div>
+        <div class="timeline-content">
+          <div class="flex items-start justify-between gap-3">
+            <p class="timeline-date">${formatArabicDate(new Date(item.date + "T00:00:00"))}</p>
+            <button type="button" class="delete-btn" aria-label="حذف الذكرى">حذف</button>
+          </div>
+          ${item.imageUrl ? `<img src="${item.imageUrl}" alt="" class="timeline-image" />` : ""}
+          <p class="timeline-desc">${escapeHtml(item.description)}</p>
+        </div>
+      `;
+
+      if (item.imageUrl) {
+        li.querySelector(".timeline-image").addEventListener("click", () =>
+          openLightbox(item.imageUrl, item.description)
+        );
+      }
+
+      li.querySelector(".delete-btn").addEventListener("click", async () => {
+        if (!confirm("هل تريد حذف هذه الذكرى نهائياً؟")) return;
+        try {
+          if (item.imagePath) await deleteObject(ref(storage, item.imagePath)).catch(() => {});
+          await deleteDoc(doc(db, "timeline", id));
+        } catch (err) {
+          alert("تعذّر حذف الذكرى.");
+          console.error(err);
+        }
+      });
+
+      return li;
+    }
+
+    // ------------------------------------------------------------
+    // 12) معرض الصور (Gallery)
+    // ------------------------------------------------------------
+    let galleryInitialized = false;
+
+    function initGallery() {
+      wireFormToggle(galleryAddToggle, galleryForm, galleryCancel, "+ إضافة صورة", "إخفاء النموذج");
+
+      if (galleryInitialized) return;
+      galleryInitialized = true;
+
+      galleryForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const file = galleryImageInput.files[0];
+        const caption = galleryCaptionInput.value.trim();
+
+        if (!file) return;
+
+        gallerySaveText.textContent = "جارٍ الرفع...";
+
+        try {
+          const uploaded = await uploadImage(file, "gallery");
+
+          await addDoc(collection(db, "gallery"), {
+            imageUrl: uploaded.url,
+            imagePath: uploaded.path,
+            caption,
+            createdAt: serverTimestamp(),
+          });
+
+          galleryForm.reset();
+          galleryForm.classList.add("hidden");
+          galleryAddToggle.textContent = "+ إضافة صورة";
+        } catch (err) {
+          alert("تعذّر رفع الصورة. حاول مرة أخرى.");
+          console.error(err);
+        } finally {
+          gallerySaveText.textContent = "رفع الصورة";
+        }
+      });
+
+      const galleryQuery = query(collection(db, "gallery"), orderBy("createdAt", "desc"));
+      onSnapshot(galleryQuery, (snapshot) => {
+        galleryGrid.innerHTML = "";
+
+        if (snapshot.empty) {
+          galleryEmpty.classList.remove("hidden");
+          return;
+        }
+        galleryEmpty.classList.add("hidden");
+
+        snapshot.forEach((docSnap) => {
+          const item = docSnap.data();
+          galleryGrid.appendChild(renderGalleryItem(docSnap.id, item));
+        });
+      });
+    }
+
+    function renderGalleryItem(id, item) {
+      const figure = document.createElement("figure");
+      figure.className = "gallery-item";
+
+      figure.innerHTML = `
+        <img src="${item.imageUrl}" alt="${escapeHtml(item.caption || "")}" class="gallery-thumb" />
+        <button type="button" class="delete-btn gallery-delete" aria-label="حذف الصورة">حذف</button>
+        ${item.caption ? `<figcaption class="gallery-caption">${escapeHtml(item.caption)}</figcaption>` : ""}
+      `;
+
+      figure.querySelector(".gallery-thumb").addEventListener("click", () =>
+        openLightbox(item.imageUrl, item.caption)
+      );
+
+      figure.querySelector(".delete-btn").addEventListener("click", async (e) => {
+        e.stopPropagation();
+        if (!confirm("هل تريد حذف هذه الصورة نهائياً؟")) return;
+        try {
+          if (item.imagePath) await deleteObject(ref(storage, item.imagePath)).catch(() => {});
+          await deleteDoc(doc(db, "gallery", id));
+        } catch (err) {
+          alert("تعذّر حذف الصورة.");
+          console.error(err);
+        }
+      });
+
+      return figure;
+    }
+
+    // ------------------------------------------------------------
+    // 13) الرسائل (Digital Letters)
+    // ------------------------------------------------------------
+    let lettersInitialized = false;
+
+    function initLetters() {
+      wireFormToggle(lettersAddToggle, lettersForm, lettersCancel, "+ كتابة رسالة", "إخفاء النموذج");
+
+      if (lettersInitialized) return;
+      lettersInitialized = true;
+
+      lettersForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const title = letterTitleInput.value.trim();
+        const content = letterContentInput.value.trim();
+
+        if (!title || !content) return;
+
+        lettersSaveText.textContent = "جارٍ الحفظ...";
+
+        try {
+          await addDoc(collection(db, "letters"), {
+            title,
+            content,
+            createdAt: serverTimestamp(),
+          });
+
+          lettersForm.reset();
+          lettersForm.classList.add("hidden");
+          lettersAddToggle.textContent = "+ كتابة رسالة";
+        } catch (err) {
+          alert("تعذّر حفظ الرسالة. حاول مرة أخرى.");
+          console.error(err);
+        } finally {
+          lettersSaveText.textContent = "حفظ الرسالة";
+        }
+      });
+
+      const lettersQuery = query(collection(db, "letters"), orderBy("createdAt", "desc"));
+      onSnapshot(lettersQuery, (snapshot) => {
+        lettersList.innerHTML = "";
+
+        if (snapshot.empty) {
+          lettersEmpty.classList.remove("hidden");
+          return;
+        }
+        lettersEmpty.classList.add("hidden");
+
+        snapshot.forEach((docSnap) => {
+          const item = docSnap.data();
+          lettersList.appendChild(renderLetterItem(docSnap.id, item));
+        });
+      });
+    }
+
+    function renderLetterItem(id, item) {
+      const article = document.createElement("article");
+      article.className = "letter-card";
+
+      const dateLabel = item.createdAt?.toDate
+        ? formatArabicDate(item.createdAt.toDate())
+        : "";
+
+      article.innerHTML = `
+        <div class="letter-seal" aria-hidden="true">🤍</div>
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h3 class="letter-title">${escapeHtml(item.title)}</h3>
+            ${dateLabel ? `<p class="letter-date">${dateLabel}</p>` : ""}
+          </div>
+          <button type="button" class="delete-btn" aria-label="حذف الرسالة">حذف</button>
+        </div>
+        <p class="letter-content">${escapeHtml(item.content)}</p>
+      `;
+
+      article.querySelector(".delete-btn").addEventListener("click", async () => {
+        if (!confirm("هل تريد حذف هذه الرسالة نهائياً؟")) return;
+        try {
+          await deleteDoc(doc(db, "letters", id));
+        } catch (err) {
+          alert("تعذّر حذف الرسالة.");
+          console.error(err);
+        }
+      });
+
+      return article;
+    }
+
+    // ------------------------------------------------------------
+    // 14) دالة مساعدة عامة: تفادي حقن HTML عند عرض نصوص المستخدم
+    // ------------------------------------------------------------
+    function escapeHtml(str) {
+      const div = document.createElement("div");
+      div.textContent = str ?? "";
+      return div.innerHTML;
+    }
+  </script>
+</body>
+<!-- </html> -->
