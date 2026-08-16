@@ -183,6 +183,10 @@
       <button type="button" data-tab="timeline" class="tab-btn">الخط الزمني</button>
       <button type="button" data-tab="gallery" class="tab-btn">معرض الصور</button>
       <button type="button" data-tab="letters" class="tab-btn">الرسائل</button>
+      <button type="button" data-tab="chat" class="tab-btn">
+        الدردشة
+        <span id="chat-badge" class="chat-badge hidden">0</span>
+      </button>
     </nav>
 
     <!-- ======================= قسم: عداد الأيام (Love Counter) ======================= -->
@@ -342,6 +346,68 @@
         <p id="letters-empty" class="empty-state hidden">لا رسائل بعد — اكتبا أول كلمة لبعضكما 🤍</p>
       </div>
     </section>
+
+    <!-- ======================= قسم: الدردشة المباشرة (Chat) ======================= -->
+    <section id="chat-panel" data-panel="chat" class="hidden px-6 py-10 sm:py-14">
+      <div class="max-w-2xl mx-auto">
+
+        <h2 class="font-display italic text-2xl sm:text-3xl text-rose-deep mb-2">حديثنا اليومي</h2>
+        <div class="ornament-divider ornament-divider-start" aria-hidden="true"><span></span><i></i></div>
+
+        <!-- حاوية الرسائل -->
+        <div class="chat-container">
+          <div id="chat-messages" role="log" aria-label="قائمة الرسائل"></div>
+          <div id="typing-indicator" class="typing-indicator hidden">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+
+        <!-- منطقة الإدخال -->
+        <div class="chat-input-area">
+          <!-- لوحة الرموز التعبيرية (مخفية افتراضياً) -->
+          <div id="emoji-panel" class="emoji-panel hidden"></div>
+
+          <!-- صف الإدخال والأزرار -->
+          <div class="chat-input-wrapper">
+            <textarea
+              id="chat-input"
+              class="chat-input"
+              placeholder="اكتب/ي رسالة..."
+              rows="1"
+            ></textarea>
+            <div class="chat-controls">
+              <button
+                type="button"
+                id="chat-emoji-picker"
+                class="chat-control-btn"
+                title="رموز تعبيرية"
+                aria-label="فتح لوحة الرموز التعبيرية"
+              >
+                😊
+              </button>
+              <button
+                type="button"
+                id="chat-attach-image"
+                class="chat-control-btn"
+                title="إرفاق صورة"
+                aria-label="إرفاق صورة"
+              >
+                📷
+              </button>
+              <button
+                type="button"
+                id="chat-send"
+                class="chat-control-btn"
+                title="إرسال الرسالة"
+                aria-label="إرسال الرسالة"
+              >
+                📤
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 
   <!-- ======================= صندوق تكبير الصورة (Lightbox) ======================= -->
@@ -360,9 +426,12 @@
 
   <!-- ======================= Firebase: الإعداد + منطق تسجيل الدخول ======================= -->
   <script type="module">
-    // ------------------------------------------------------------
+    // استيراد ChatManager من ملف chat.js
+    import ChatManager from "./chat.js";
+
+    // -------- باقي الكود الموجود --------
     // 1) استيراد أدوات Firebase (نسخة Modular v10 عبر CDN)
-    // ------------------------------------------------------------
+    // --------
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
     import {
       getAuth,
@@ -389,13 +458,7 @@
       deleteObject,
     } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
-    // ------------------------------------------------------------
     // 2) إعدادات مشروع Firebase الخاص بك
-    // ------------------------------------------------------------
-    // ⚠️ ملاحظة أمنية: هذه القيم (apiKey إلخ) ليست سرّية بطبيعتها،
-    // ومن الطبيعي ظهورها في كود المتصفح. الحماية الفعلية تأتي من:
-    //  - تفعيل Email/Password فقط في Authentication (بدون Sign-up في الواجهة)
-    //  - قواعد أمان Firestore/Storage التي تسمح فقط لمستخدم مسجّل دخوله
     const firebaseConfig = {
       apiKey: "AIzaSyDWcU0G6LQSnSjhoXseoQzuyl_SWwKI5hI",
       authDomain: "our-lives-a2007a.firebaseapp.com",
@@ -410,9 +473,7 @@
     const db = getFirestore(app);
     const storage = getStorage(app);
 
-    // ------------------------------------------------------------
     // 3) عناصر الصفحة
-    // ------------------------------------------------------------
     const loginScreen = document.getElementById("login-screen");
     const appShell = document.getElementById("app-shell");
     const bootLoader = document.getElementById("boot-loader");
@@ -475,17 +536,23 @@
     const lightboxImg = document.getElementById("lightbox-img");
     const lightboxClose = document.getElementById("lightbox-close");
 
-    // ------------------------------------------------------------
+    // متغير ChatManager (سيُهيأ بعد تسجيل الدخول)
+    let chatManager = null;
+
     // 4) المسار المحمي (Protected Route)
-    // ------------------------------------------------------------
-    // نراقب حالة تسجيل الدخول باستمرار. لا تظهر شاشة الدخول ولا
-    // محتوى التطبيق قبل أن يردّ Firebase بحالة المستخدم الحقيقية.
     onAuthStateChanged(auth, (user) => {
       bootLoader.classList.add("hidden");
 
       if (user) {
         loginScreen.classList.add("hidden");
         appShell.classList.remove("hidden");
+        
+        // تهيئة ChatManager بعد تسجيل الدخول
+        if (!chatManager) {
+          chatManager = new ChatManager(db, storage, auth);
+          chatManager.setCurrentUser(user);
+        }
+        
         startLoveCounter();
         initTimeline();
         initGallery();
@@ -496,9 +563,7 @@
       }
     });
 
-    // ------------------------------------------------------------
     // 5) إرسال نموذج تسجيل الدخول
-    // ------------------------------------------------------------
     loginForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       hideError();
@@ -509,7 +574,6 @@
 
       try {
         await signInWithEmailAndPassword(auth, email, password);
-        // onAuthStateChanged أعلاه سيتكفّل تلقائياً بإظهار التطبيق
       } catch (err) {
         showError(mapFirebaseError(err.code));
       } finally {
@@ -517,16 +581,12 @@
       }
     });
 
-    // ------------------------------------------------------------
     // 6) تسجيل الخروج
-    // ------------------------------------------------------------
     logoutBtn?.addEventListener("click", async () => {
       await signOut(auth);
     });
 
-    // ------------------------------------------------------------
     // 7) إظهار / إخفاء كلمة المرور
-    // ------------------------------------------------------------
     togglePasswordBtn.addEventListener("click", () => {
       const isHidden = passwordInput.type === "password";
       passwordInput.type = isHidden ? "text" : "password";
@@ -537,9 +597,7 @@
       );
     });
 
-    // ------------------------------------------------------------
     // 8) دوال مساعدة
-    // ------------------------------------------------------------
     function setLoading(isLoading) {
       submitBtn.disabled = isLoading;
       submitBtn.classList.toggle("opacity-70", isLoading);
@@ -558,7 +616,6 @@
       loginError.textContent = "";
     }
 
-    // ترجمة أكواد أخطاء Firebase إلى رسائل عربية واضحة
     function mapFirebaseError(code) {
       switch (code) {
         case "auth/invalid-email":
@@ -576,9 +633,7 @@
       }
     }
 
-    // ------------------------------------------------------------
     // 9) التنقّل بين الأقسام (Tabs)
-    // ------------------------------------------------------------
     tabButtons.forEach((btn) => {
       btn.addEventListener("click", () => {
         const target = btn.dataset.tab;
@@ -590,21 +645,17 @@
       });
     });
 
-    // ------------------------------------------------------------
     // 10) عداد الأيام (Love Counter)
-    // ------------------------------------------------------------
-    // ⚠️ عدّل التاريخ التالي إلى تاريخ بداية علاقتكما (سنة-شهر-يوم، وبالتوقيت المحلي)
     const RELATIONSHIP_START_DATE = new Date("2023-02-03T00:00:00");
 
     let loveCounterInterval = null;
 
     function startLoveCounter() {
-      if (loveCounterInterval) return; // لا تُشغّل أكثر من عداد واحد في نفس الوقت
+      if (loveCounterInterval) return;
 
-      // نص "منذ" ثابت (تاريخ البداية بصيغة عربية مقروءة)
       counterSince.textContent = `منذ ${formatArabicDate(RELATIONSHIP_START_DATE)}`;
 
-      renderLoveCounter(); // عرض فوري دون انتظار أول ثانية
+      renderLoveCounter();
       loveCounterInterval = setInterval(renderLoveCounter, 1000);
     }
 
@@ -624,11 +675,6 @@
       counterTotalDays.textContent = `${totalDays.toLocaleString("ar")} يوماً معاً بالمجموع`;
     }
 
-    /**
-     * حساب الفرق بين تاريخين بدقّة تقويمية (سنوات كاملة، أشهر كاملة، أيام،
-     * ساعات، دقائق، ثوانٍ) بدل تقسيم الفرق الإجمالي بالمللي ثانية فقط،
-     * لأن الأشهر والسنوات متفاوتة الطول تقويمياً.
-     */
     function calculateElapsed(start, now) {
       let years = now.getFullYear() - start.getFullYear();
       let months = now.getMonth() - start.getMonth();
@@ -650,7 +696,6 @@
         days--;
       }
       if (days < 0) {
-        // عدد أيام الشهر السابق لشهر "الآن"، لإضافته للفرق السالب في الأيام
         const prevMonthLastDay = new Date(now.getFullYear(), now.getMonth(), 0).getDate();
         days += prevMonthLastDay;
         months--;
@@ -663,7 +708,6 @@
       return { years, months, days, hours, minutes, seconds };
     }
 
-    /** تنسيق تاريخ بصيغة عربية مقروءة، مثال: 1 يناير 2023 */
     function formatArabicDate(date) {
       return date.toLocaleDateString("ar-EG", {
         year: "numeric",
@@ -672,11 +716,7 @@
       });
     }
 
-    // ------------------------------------------------------------
-    // أدوات مشتركة: فتح/إغلاق نماذج الإضافة، ورفع الصور
-    // ------------------------------------------------------------
-
-    /** تبديل ظهور نموذج داخل قسم معيّن (زر "+ إضافة" يفتح النموذج ويتحول لـ "إخفاء") */
+    // أدوات مشتركة
     function wireFormToggle(toggleBtn, form, cancelBtn, openLabel, closeLabel) {
       toggleBtn.addEventListener("click", () => {
         const willShow = form.classList.contains("hidden");
@@ -690,10 +730,6 @@
       });
     }
 
-    /**
-     * رفع ملف صورة إلى Firebase Storage داخل مجلد معيّن، وإرجاع رابط التحميل.
-     * يُستخدم لكل من الخط الزمني ومعرض الصور.
-     */
     async function uploadImage(file, folder) {
       const safeName = `${Date.now()}-${file.name.replace(/[^\w.\-]/g, "_")}`;
       const imageRef = ref(storage, `${folder}/${safeName}`);
@@ -701,7 +737,6 @@
       return { url: await getDownloadURL(imageRef), path: imageRef.fullPath };
     }
 
-    /** فتح صندوق تكبير الصورة */
     function openLightbox(url, alt) {
       lightboxImg.src = url;
       lightboxImg.alt = alt || "";
@@ -713,15 +748,13 @@
     }
     lightboxClose.addEventListener("click", closeLightbox);
     lightbox.addEventListener("click", (e) => {
-      if (e.target === lightbox) closeLightbox(); // إغلاق عند الضغط خارج الصورة
+      if (e.target === lightbox) closeLightbox();
     });
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") closeLightbox();
     });
 
-    // ------------------------------------------------------------
     // 11) الخط الزمني (Timeline)
-    // ------------------------------------------------------------
     let timelineInitialized = false;
 
     function initTimeline() {
@@ -768,7 +801,6 @@
         }
       });
 
-      // استماع مباشر: أي إضافة أو حذف تنعكس فوراً لدى الطرفين
       const timelineQuery = query(collection(db, "timeline"), orderBy("date", "desc"));
       onSnapshot(timelineQuery, (snapshot) => {
         timelineList.innerHTML = "";
@@ -822,9 +854,7 @@
       return li;
     }
 
-    // ------------------------------------------------------------
     // 12) معرض الصور (Gallery)
-    // ------------------------------------------------------------
     let galleryInitialized = false;
 
     function initGallery() {
@@ -909,9 +939,7 @@
       return figure;
     }
 
-    // ------------------------------------------------------------
     // 13) الرسائل (Digital Letters)
-    // ------------------------------------------------------------
     let lettersInitialized = false;
 
     function initLetters() {
@@ -997,14 +1025,12 @@
       return article;
     }
 
-    // ------------------------------------------------------------
-    // 14) دالة مساعدة عامة: تفادي حقن HTML عند عرض نصوص المستخدم
-    // ------------------------------------------------------------
-    function escapeHtml(str) {
+    // دالة مساعدة: Escape HTML
+    function escapeHtml(text) {
       const div = document.createElement("div");
-      div.textContent = str ?? "";
+      div.textContent = text;
       return div.innerHTML;
     }
   </script>
 </body>
-<!-- </html> -->
+</html>
