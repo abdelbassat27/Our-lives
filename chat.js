@@ -1,11 +1,33 @@
 // ========== نظام الدردشة المباشرة (Chat System) ==========
 // يتضمن: رسائل فورية، typing indicator، emojis، صور مضمنة، صوت إشعارات
+// ملاحظة: تم تحديث هذا الملف لاستخدام واجهات Firebase المعيارية (Modular SDK)
+
+import {
+  collection,
+  addDoc,
+  updateDoc,
+  setDoc,
+  doc,
+  query,
+  orderBy,
+  limit,
+  onSnapshot,
+  where,
+  getDocs,
+  deleteDoc,
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import {
+  ref as storageRef,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject,
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
 class ChatManager {
   constructor(db, storage, auth) {
-    this.db = db;
-    this.storage = storage;
-    this.auth = auth;
+    this.db = db; // Firestore instance (modular)
+    this.storage = storage; // Storage instance (modular)
+    this.auth = auth; // Auth instance
     this.currentUser = null;
     this.chatContainer = document.getElementById("chat-messages");
     this.inputField = document.getElementById("chat-input");
@@ -16,15 +38,14 @@ class ChatManager {
     this.chatPanel = document.getElementById("chat-panel");
     this.typingIndicator = document.getElementById("typing-indicator");
     this.messageCount = document.getElementById("chat-badge");
-    
+
     this.setupListeners();
-    this.setupAuthListener();
     this.preloadAudio();
   }
 
   // استماع لتغييرات المستخدم
   setupAuthListener() {
-    // سيتم ربطه بـ Firebase auth من الملف الرئيسي
+    // يبقى فارغاً: index.html يمرر المستخدم عبر setCurrentUser
   }
 
   setupListeners() {
@@ -92,11 +113,23 @@ class ChatManager {
   // تحديد حالة الكتابة (typing indicator)
   async setTypingStatus(isTyping) {
     try {
-      const typingRef = this.db.collection("users").doc(this.currentUser.uid);
-      await typingRef.update({
-        isTyping: isTyping,
-        lastSeen: new Date(),
-      });
+      if (!this.currentUser) return;
+      const userDocRef = doc(this.db, "users", this.currentUser.uid);
+      // حاول التحديث، وإذا لم يكن المستند موجوداً فأنشئه
+      try {
+        await updateDoc(userDocRef, {
+          isTyping: isTyping,
+          lastSeen: new Date(),
+        });
+      } catch (err) {
+        // إذا فشل التحديث (عدم وجود المستند)، قم بإنشاء مستند ببيانات أساسية
+        await setDoc(userDocRef, {
+          isTyping: isTyping,
+          lastSeen: new Date(),
+          uid: this.currentUser.uid,
+          displayName: this.currentUser.displayName || null,
+        }, { merge: true });
+      }
     } catch (err) {
       console.error("خطأ في تحديث حالة الكتابة:", err);
     }
@@ -104,17 +137,17 @@ class ChatManager {
 
   // إرسال رسالة نصية
   async sendMessage() {
-    const text = this.inputField.value.trim();
+    const text = (this.inputField.value || "").trim();
     if (!text) return;
 
     this.inputField.disabled = true;
     this.sendBtn.disabled = true;
 
     try {
-      await this.db.collection("messages").add({
+      await addDoc(collection(this.db, "messages"), {
         text: text,
-        senderId: this.currentUser.uid,
-        senderName: this.currentUser.displayName || "مستخدم",
+        senderId: this.currentUser?.uid || null,
+        senderName: this.currentUser?.displayName || "مستخدم",
         timestamp: new Date(),
         type: "text",
         read: false,
@@ -139,17 +172,18 @@ class ChatManager {
     this.sendBtn.textContent = "جارٍ الرفع...";
 
     try {
-      const fileName = `${Date.now()}-${file.name.replace(/[^\w.\-]/g, "_")}`;
-      const imageRef = this.storage.ref(`chat/${fileName}`);
-      
-      await imageRef.put(file);
-      const imageUrl = await imageRef.getDownloadURL();
+      const fileName = `${Date.now()}-${file.name.replace(/[^\\w.\\-]/g, "_")}`;
+      const path = `chat/${fileName}`;
+      const imgRef = storageRef(this.storage, path);
 
-      await this.db.collection("messages").add({
+      await uploadBytes(imgRef, file);
+      const imageUrl = await getDownloadURL(imgRef);
+
+      await addDoc(collection(this.db, "messages"), {
         imageUrl: imageUrl,
-        imagePath: imageRef.fullPath,
-        senderId: this.currentUser.uid,
-        senderName: this.currentUser.displayName || "مستخدم",
+        imagePath: path,
+        senderId: this.currentUser?.uid || null,
+        senderName: this.currentUser?.displayName || "مستخدم",
         timestamp: new Date(),
         type: "image",
         read: false,
@@ -167,32 +201,35 @@ class ChatManager {
 
   // استقبال الرسائل (Realtime listener)
   listenToMessages() {
-    this.db.collection("messages")
-      .orderBy("timestamp", "asc")
-      .limit(100)
-      .onSnapshot((snapshot) => {
-        this.chatContainer.innerHTML = "";
-        const messages = [];
+    const q = query(
+      collection(this.db, "messages"),
+      orderBy("timestamp", "asc"),
+      limit(100)
+    );
 
-        snapshot.forEach((doc) => {
-          messages.push({ id: doc.id, ...doc.data() });
-        });
+    onSnapshot(q, (snapshot) => {
+      this.chatContainer.innerHTML = "";
+      const messages = [];
 
-        messages.forEach((msg, index) => {
-          const isOwn = msg.senderId === this.currentUser.uid;
-          const messageEl = this.renderMessage(msg, isOwn);
-          this.chatContainer.appendChild(messageEl);
-
-          // تشغيل صوت للرسالة الجديدة القادمة من الطرف الآخر
-          if (!isOwn && index === messages.length - 1) {
-            this.playNotificationSound();
-          }
-        });
-
-        // التمرير التلقائي إلى آخر رسالة
-        this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
-        this.updateMessageCount();
+      snapshot.forEach((docSnap) => {
+        messages.push({ id: docSnap.id, ...docSnap.data() });
       });
+
+      messages.forEach((msg, index) => {
+        const isOwn = msg.senderId === this.currentUser?.uid;
+        const messageEl = this.renderMessage(msg, isOwn);
+        this.chatContainer.appendChild(messageEl);
+
+        // تشغيل صوت للرسالة الجديدة القادمة من الطرف الآخر
+        if (!isOwn && index === messages.length - 1) {
+          this.playNotificationSound();
+        }
+      });
+
+      // التمرير التلقائي إلى آخر رسالة
+      this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
+      this.updateMessageCount();
+    });
   }
 
   // عرض الرسالة
@@ -200,20 +237,19 @@ class ChatManager {
     const messageDiv = document.createElement("div");
     messageDiv.className = `chat-message ${isOwn ? "own" : "other"}`;
 
-    const timeFormatted = msg.timestamp?.toDate?.()
-      ? this.formatTime(msg.timestamp.toDate())
-      : "الآن";
+    const timeObj = msg.timestamp?.toDate ? msg.timestamp.toDate() : (msg.timestamp instanceof Date ? msg.timestamp : new Date());
+    const timeFormatted = timeObj ? this.formatTime(timeObj) : "الآن";
 
     let content = "";
     if (msg.type === "image") {
       content = `<img src="${msg.imageUrl}" alt="صورة" class="chat-image" />`;
     } else {
-      content = `<p class="chat-text">${this.escapeHtml(msg.text)}</p>`;
+      content = `<p class="chat-text">${this.escapeHtml(msg.text || "")}</p>`;
     }
 
     messageDiv.innerHTML = `
       <div class="chat-message-bubble">
-        ${!isOwn ? `<p class="chat-sender-name">${this.escapeHtml(msg.senderName)}</p>` : ""}
+        ${!isOwn ? `<p class="chat-sender-name">${this.escapeHtml(msg.senderName || "")}</p>` : ""}
         ${content}
         <span class="chat-time">${timeFormatted}</span>
       </div>
@@ -225,9 +261,9 @@ class ChatManager {
       if (confirm("هل تريد حذف هذه الرسالة؟")) {
         try {
           if (msg.imagePath) {
-            await this.storage.ref(msg.imagePath).delete().catch(() => {});
+            await deleteObject(storageRef(this.storage, msg.imagePath)).catch(() => {});
           }
-          await this.db.collection("messages").doc(msg.id).delete();
+          await deleteDoc(doc(this.db, "messages", msg.id));
         } catch (err) {
           alert("فشل حذف الرسالة");
         }
@@ -254,7 +290,7 @@ class ChatManager {
     if (minutes < 60) return `${minutes}د`;
     if (hours < 24) return `${hours}س`;
     if (days < 7) return `${days}ا`;
-    
+
     return date.toLocaleDateString("ar-EG");
   }
 
@@ -273,20 +309,25 @@ class ChatManager {
   }
 
   // تحديث عدد الرسائل غير المقروءة
-  updateMessageCount() {
-    this.db.collection("messages")
-      .where("read", "==", false)
-      .where("senderId", "!=", this.currentUser.uid)
-      .get()
-      .then(snapshot => {
-        const count = snapshot.size;
-        if (count > 0) {
-          this.messageCount.textContent = count;
-          this.messageCount.classList.remove("hidden");
-        } else {
-          this.messageCount.classList.add("hidden");
-        }
-      });
+  async updateMessageCount() {
+    try {
+      if (!this.currentUser) return;
+      const q = query(
+        collection(this.db, "messages"),
+        where("read", "==", false),
+        where("senderId", "!=", this.currentUser.uid)
+      );
+      const snapshot = await getDocs(q);
+      const count = snapshot.size;
+      if (count > 0) {
+        this.messageCount.textContent = count;
+        this.messageCount.classList.remove("hidden");
+      } else {
+        this.messageCount.classList.add("hidden");
+      }
+    } catch (err) {
+      console.error("خطأ أثناء تحديث عداد الرسائل:", err);
+    }
   }
 
   // فتح صورة في lightbox
@@ -300,7 +341,7 @@ class ChatManager {
   // تجنب XSS
   escapeHtml(text) {
     const div = document.createElement("div");
-    div.textContent = text;
+    div.textContent = text || "";
     return div.innerHTML;
   }
 
@@ -313,7 +354,4 @@ class ChatManager {
   }
 }
 
-// تصدير الفئة
-if (typeof module !== "undefined" && module.exports) {
-  module.exports = ChatManager;
-}
+export default ChatManager;
